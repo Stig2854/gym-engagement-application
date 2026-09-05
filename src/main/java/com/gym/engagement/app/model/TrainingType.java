@@ -1,9 +1,15 @@
 package com.gym.engagement.app.model;
 
-public enum TrainingType {
-    FITNESS,
-    YOGA,
-    ZUMBA,
-    STRETCHING,
-    RESISTANCE
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrainingType {
+
+    private String trainingTypeName;
 }
