@@ -3,7 +3,8 @@ package com.gym.engagement.app.storage;
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.model.Training;
-import com.gym.engagement.app.model.TrainingType;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.io.Resource;
@@ -13,112 +14,50 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 
 @Component
+@RequiredArgsConstructor
 public class StorageDataInitializer implements BeanPostProcessor {
 
-    private Resource initialDataFile;
+    private final InitialDataParser initialDataParser;
 
-    @Value("${storage.initial-data.path}")
-    public void setInitialDataFile(Resource initialDataFile) {
-        this.initialDataFile = initialDataFile;
-    }
+    @Setter(onMethod_ = @Value("${storage.initial-data.path}"))
+    private Resource initialDataFile;
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) {
-        if (bean instanceof InMemoryStorage) {
-            initializeStorage((InMemoryStorage) bean);
+        if (bean instanceof InMemoryStorage storage) {
+            initializeStorage(storage);
         }
 
         return bean;
     }
 
     private void initializeStorage(InMemoryStorage storage) {
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        initialDataFile.getInputStream(),
-                        StandardCharsets.UTF_8
-                )
-        )) {
+        try (BufferedReader reader = createReader()) {
             reader.lines()
                     .filter(line -> !line.isBlank())
-                    .forEach(line -> initializeEntity(storage, line));
+                    .map(initialDataParser::parse)
+                    .forEach(entity -> addToStorage(storage, entity));
         } catch (IOException exception) {
-            throw new IllegalStateException(
-                    "Failed to initialize in-memory storage",
-                    exception
-            );
+            throw new IllegalStateException("Failed to initialize in-memory storage", exception);
         }
     }
 
-    private void initializeEntity(InMemoryStorage storage, String line) {
-        String[] values = line.split(",", -1);
+    private BufferedReader createReader() throws IOException {
+        InputStreamReader reader = new InputStreamReader(initialDataFile.getInputStream(), StandardCharsets.UTF_8);
+        return new BufferedReader(reader);
+    }
 
-        switch (values[0]) {
-            case "TRAINEE" -> initializeTrainee(storage, values);
-            case "TRAINER" -> initializeTrainer(storage, values);
-            case "TRAINING" -> initializeTraining(storage, values);
-            default -> throw new IllegalArgumentException(
-                    "Unsupported initial data record type: " + values[0]
-            );
+    private void addToStorage(InMemoryStorage storage, Object entity) {
+        if (entity instanceof Trainee trainee) {
+            storage.getTrainees().put(trainee.getUserId(), trainee);
+        } else if (entity instanceof Trainer trainer) {
+            storage.getTrainers().put(trainer.getUserId(), trainer);
+        } else if (entity instanceof Training training) {
+            storage.getTrainings().put(training.getId(), training);
         }
-    }
-
-    private void initializeTrainee(InMemoryStorage storage, String[] values) {
-        Long userId = Long.valueOf(values[1]);
-
-        Trainee trainee = Trainee.builder()
-                .userId(userId)
-                .firstName(values[2])
-                .lastName(values[3])
-                .username(values[4])
-                .password(values[5])
-                .active(Boolean.parseBoolean(values[6]))
-                .dateOfBirth(LocalDate.parse(values[7]))
-                .address(values[8])
-                .build();
-
-        storage.getTrainees().put(userId, trainee);
-    }
-
-    private void initializeTrainer(InMemoryStorage storage, String[] values) {
-        Long userId = Long.valueOf(values[1]);
-
-        TrainingType specialization = TrainingType.builder()
-                .trainingTypeName(values[7])
-                .build();
-
-        Trainer trainer = Trainer.builder()
-                .userId(userId)
-                .firstName(values[2])
-                .lastName(values[3])
-                .username(values[4])
-                .password(values[5])
-                .active(Boolean.parseBoolean(values[6]))
-                .specialization(specialization)
-                .build();
-
-        storage.getTrainers().put(userId, trainer);
-    }
-
-    private void initializeTraining(InMemoryStorage storage, String[] values) {
-        Long id = Long.valueOf(values[1]);
-
-        TrainingType trainingType = TrainingType.builder()
-                .trainingTypeName(values[5])
-                .build();
-
-        Training training = Training.builder()
-                .id(id)
-                .traineeId(Long.valueOf(values[2]))
-                .trainerId(Long.valueOf(values[3]))
-                .trainingName(values[4])
-                .trainingType(trainingType)
-                .trainingDate(LocalDate.parse(values[6]))
-                .trainingDuration(Integer.parseInt(values[7]))
-                .build();
-
-        storage.getTrainings().put(id, training);
     }
 }
+
+

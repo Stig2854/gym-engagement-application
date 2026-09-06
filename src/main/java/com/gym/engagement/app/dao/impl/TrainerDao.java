@@ -12,9 +12,7 @@ import java.util.Map;
 public class TrainerDao extends AbstractDao<Trainer> {
 
     @Autowired
-    public void setStorage(
-            @Qualifier("trainerStorage") Map<Long, Trainer> storage
-    ) {
+    public void setStorage(@Qualifier("trainerStorage") Map<Long, Trainer> storage) {
         super.setStorage(storage);
     }
 }
