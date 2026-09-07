@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 
 @Repository
-public class TraineeDao extends AbstractDao<Trainee> {
+public class TraineeDaoImpl extends AbstractDao<Trainee> {
 
     @Autowired
     public void setStorage(@Qualifier("traineeStorage") Map<Long, Trainee> storage) {
