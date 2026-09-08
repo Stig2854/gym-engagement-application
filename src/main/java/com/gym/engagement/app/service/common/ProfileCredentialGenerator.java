@@ -2,6 +2,7 @@ package com.gym.engagement.app.service.common;
 
 import com.gym.engagement.app.dao.TraineeDao;
 import com.gym.engagement.app.dao.TrainerDao;
+import com.gym.engagement.app.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,20 +45,6 @@ public class ProfileCredentialGenerator {
         return username;
     }
 
-    private int countProfilesWithSameName(String firstName, String lastName) {
-        long traineeCount = traineeDao.findAll().stream()
-                .filter(trainee -> firstName.equals(trainee.getFirstName())
-                        && lastName.equals(trainee.getLastName()))
-                .count();
-
-        long trainerCount = trainerDao.findAll().stream()
-                .filter(trainer -> firstName.equals(trainer.getFirstName())
-                        && lastName.equals(trainer.getLastName()))
-                .count();
-
-        return Math.toIntExact(traineeCount + trainerCount);
-    }
-
     public String generatePassword() {
         StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
 
@@ -70,13 +57,28 @@ public class ProfileCredentialGenerator {
     }
 
     private boolean isUsernameTaken(String username) {
-        boolean traineeUsernameTaken = traineeDao.findAll().stream()
+        boolean isTraineeUsernameTaken = traineeDao.findAll().stream()
                 .anyMatch(trainee -> username.equals(trainee.getUsername()));
-
-        boolean trainerUsernameTaken = trainerDao.findAll().stream()
+        boolean isTrainerUsernameTaken = trainerDao.findAll().stream()
                 .anyMatch(trainer -> username.equals(trainer.getUsername()));
 
-        return traineeUsernameTaken || trainerUsernameTaken;
+        return isTraineeUsernameTaken || isTrainerUsernameTaken;
+    }
+
+    private int countProfilesWithSameName(String firstName, String lastName) {
+        long traineeCount = traineeDao.findAll().stream()
+                .filter(trainee -> isSameName(trainee, firstName, lastName))
+                .count();
+        long trainerCount = trainerDao.findAll().stream()
+                .filter(trainer -> isSameName(trainer, firstName, lastName))
+                .count();
+
+        return Math.toIntExact(traineeCount + trainerCount);
+    }
+
+    private boolean isSameName(User user, String firstName, String lastName) {
+        return firstName.equals(user.getFirstName())
+                && lastName.equals(user.getLastName());
     }
 
     private void validateNamePart(String namePart, String fieldName) {
