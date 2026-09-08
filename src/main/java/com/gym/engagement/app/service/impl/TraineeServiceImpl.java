@@ -4,6 +4,7 @@ import com.gym.engagement.app.dao.TraineeDao;
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.service.TraineeService;
 import com.gym.engagement.app.service.common.CoreValidator;
+import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,16 @@ public class TraineeServiceImpl implements TraineeService {
 
     private TraineeDao traineeDao;
     private CoreValidator validator;
+    private ProfileCredentialGenerator credentialGenerator;
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
+    }
+
+    @Autowired
+    public void setCredentialGenerator(ProfileCredentialGenerator credentialGenerator) {
+        this.credentialGenerator = credentialGenerator;
     }
 
     @Autowired
@@ -34,9 +41,23 @@ public class TraineeServiceImpl implements TraineeService {
             throw new IllegalStateException("Trainee with ID " + trainee.getUserId() + " already exists");
         }
 
-        traineeDao.save(trainee.getUserId(), trainee);
+        String username = credentialGenerator.generateUsername(trainee.getFirstName(), trainee.getLastName());
+        String password = credentialGenerator.generatePassword();
 
-        return trainee;
+        Trainee traineeWithCredentials = Trainee.builder()
+                .userId(trainee.getUserId())
+                .firstName(trainee.getFirstName())
+                .lastName(trainee.getLastName())
+                .username(username)
+                .password(password)
+                .active(trainee.isActive())
+                .dateOfBirth(trainee.getDateOfBirth())
+                .address(trainee.getAddress())
+                .build();
+
+        traineeDao.save(traineeWithCredentials.getUserId(), traineeWithCredentials);
+
+        return traineeWithCredentials;
     }
 
     @Override
