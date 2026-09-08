@@ -4,6 +4,7 @@ import com.gym.engagement.app.dao.TrainerDao;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.service.TrainerService;
 import com.gym.engagement.app.service.common.CoreValidator;
+import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     private TrainerDao trainerDao;
     private CoreValidator validator;
+    private ProfileCredentialGenerator credentialGenerator;
 
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
@@ -26,6 +28,11 @@ public class TrainerServiceImpl implements TrainerService {
         this.validator = validator;
     }
 
+    @Autowired
+    public void setCredentialGenerator(ProfileCredentialGenerator credentialGenerator) {
+        this.credentialGenerator = credentialGenerator;
+    }
+
     @Override
     public Trainer create(Trainer trainer) {
         validator.validateTrainer(trainer);
@@ -34,9 +41,22 @@ public class TrainerServiceImpl implements TrainerService {
             throw new IllegalStateException("Trainer with ID " + trainer.getUserId() + " already exists");
         }
 
-        trainerDao.save(trainer.getUserId(), trainer);
+        String username = credentialGenerator.generateUsername(trainer.getFirstName(), trainer.getLastName());
+        String password = credentialGenerator.generatePassword();
 
-        return trainer;
+        Trainer trainerWithCredentials = Trainer.builder()
+                .userId(trainer.getUserId())
+                .firstName(trainer.getFirstName())
+                .lastName(trainer.getLastName())
+                .username(username)
+                .password(password)
+                .active(trainer.isActive())
+                .specialization(trainer.getSpecialization())
+                .build();
+
+        trainerDao.save(trainerWithCredentials.getUserId(), trainerWithCredentials);
+
+        return trainerWithCredentials;
     }
 
     @Override
