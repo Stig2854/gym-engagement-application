@@ -46,6 +46,4 @@ public class CoreValidator {
             throw new IllegalArgumentException(entityName + " ID does not match update ID");
         }
     }
-
-
 }
