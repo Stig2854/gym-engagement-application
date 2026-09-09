@@ -76,11 +76,21 @@ public class TrainerServiceImpl implements TrainerService {
         validator.validateTrainer(trainer);
         validator.validateUpdateId(id, trainer.getUserId(), "Trainer");
 
-        trainerDao.findById(id)
+        Trainer existingTrainer = trainerDao.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Trainer not found with ID: " + id));
 
-        trainerDao.update(id, trainer);
+        Trainer updatedTrainer = Trainer.builder()
+                .userId(trainer.getUserId())
+                .firstName(trainer.getFirstName())
+                .lastName(trainer.getLastName())
+                .username(existingTrainer.getUsername())
+                .password(existingTrainer.getPassword())
+                .active(trainer.isActive())
+                .specialization(trainer.getSpecialization())
+                .build();
 
-        return trainer;
+        trainerDao.update(id, updatedTrainer);
+
+        return updatedTrainer;
     }
 }

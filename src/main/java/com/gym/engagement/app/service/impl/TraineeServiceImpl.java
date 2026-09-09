@@ -77,12 +77,23 @@ public class TraineeServiceImpl implements TraineeService {
         validator.validateTrainee(trainee);
         validator.validateUpdateId(id, trainee.getUserId(), "Trainee");
 
-        traineeDao.findById(id)
+        Trainee existingTrainee = traineeDao.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Trainee not found with ID: " + id));
 
-        traineeDao.update(id, trainee);
+        Trainee updatedTrainee = Trainee.builder()
+                .userId(trainee.getUserId())
+                .firstName(trainee.getFirstName())
+                .lastName(trainee.getLastName())
+                .username(existingTrainee.getUsername())
+                .password(existingTrainee.getPassword())
+                .active(trainee.isActive())
+                .dateOfBirth(trainee.getDateOfBirth())
+                .address(trainee.getAddress())
+                .build();
 
-        return trainee;
+        traineeDao.update(id, updatedTrainee);
+
+        return updatedTrainee;
     }
 
     @Override
