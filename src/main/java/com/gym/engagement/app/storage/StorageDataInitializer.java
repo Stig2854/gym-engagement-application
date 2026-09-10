@@ -61,9 +61,7 @@ public class StorageDataInitializer implements BeanPostProcessor {
     }
 
     private BufferedReader createReader() throws IOException {
-        InputStreamReader reader = new InputStreamReader(
-                initialDataFile.getInputStream(),
-                StandardCharsets.UTF_8);
+        InputStreamReader reader = new InputStreamReader(initialDataFile.getInputStream(), StandardCharsets.UTF_8);
 
         return new BufferedReader(reader);
     }
