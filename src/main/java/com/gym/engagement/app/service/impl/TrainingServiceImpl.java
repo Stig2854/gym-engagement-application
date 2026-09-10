@@ -4,6 +4,8 @@ import com.gym.engagement.app.dao.TrainingDao;
 import com.gym.engagement.app.model.Training;
 import com.gym.engagement.app.service.TrainingService;
 import com.gym.engagement.app.service.common.CoreValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.Optional;
 
 @Service
 public class TrainingServiceImpl implements TrainingService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
     private TrainingDao trainingDao;
     private CoreValidator validator;
@@ -29,12 +33,14 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     public Training create(Training training) {
         validator.validateTraining(training);
-
         if (trainingDao.findById(training.getId()).isPresent()) {
-            throw new IllegalStateException("Training with ID " + training.getId() + " already exists");
+            LOGGER.warn("Attempt to create training with existing ID: {}", training.getId());
+
+            throw new IllegalStateException("Training with ID %d already exists".formatted(training.getId()));
         }
 
         trainingDao.save(training.getId(), training);
+        LOGGER.info("Created training with ID: {}", training.getId());
 
         return training;
     }
