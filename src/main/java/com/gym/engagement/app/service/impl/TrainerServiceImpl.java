@@ -5,6 +5,8 @@ import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.service.TrainerService;
 import com.gym.engagement.app.service.common.CoreValidator;
 import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import java.util.Optional;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
     private TrainerDao trainerDao;
     private CoreValidator validator;
@@ -38,6 +42,8 @@ public class TrainerServiceImpl implements TrainerService {
         validator.validateTrainer(trainer);
 
         if (trainerDao.findById(trainer.getUserId()).isPresent()) {
+            LOGGER.warn("Attempt to create trainer with existing ID: {}", trainer.getUserId());
+
             throw new IllegalStateException("Trainer with ID " + trainer.getUserId() + " already exists");
         }
 
@@ -55,6 +61,8 @@ public class TrainerServiceImpl implements TrainerService {
                 .build();
 
         trainerDao.save(trainerWithCredentials.getUserId(), trainerWithCredentials);
+
+        LOGGER.info("Created trainer with ID: {}", trainerWithCredentials.getUserId());
 
         return trainerWithCredentials;
     }
@@ -77,7 +85,11 @@ public class TrainerServiceImpl implements TrainerService {
         validator.validateUpdateId(id, trainer.getUserId(), "Trainer");
 
         Trainer existingTrainer = trainerDao.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Trainer not found with ID: " + id));
+                .orElseThrow(() -> {
+                    LOGGER.warn("Attempt to update non-existing trainer with ID: {}", id);
+
+                    return new IllegalStateException("Trainer not found with ID: " + id);
+                });
 
         Trainer updatedTrainer = Trainer.builder()
                 .userId(trainer.getUserId())
@@ -90,6 +102,8 @@ public class TrainerServiceImpl implements TrainerService {
                 .build();
 
         trainerDao.update(id, updatedTrainer);
+
+        LOGGER.info("Updated trainer with ID: {}", updatedTrainer.getUserId());
 
         return updatedTrainer;
     }
