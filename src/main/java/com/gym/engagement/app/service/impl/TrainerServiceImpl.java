@@ -44,7 +44,7 @@ public class TrainerServiceImpl implements TrainerService {
         if (trainerDao.findById(trainer.getUserId()).isPresent()) {
             LOGGER.warn("Attempt to create trainer with existing ID: {}", trainer.getUserId());
 
-            throw new IllegalStateException("Trainer with ID " + trainer.getUserId() + " already exists");
+            throw new IllegalStateException("Trainer with ID %d already exists".formatted(trainer.getUserId()));
         }
 
         String username = credentialGenerator.generateUsername(trainer.getFirstName(), trainer.getLastName());
@@ -61,7 +61,6 @@ public class TrainerServiceImpl implements TrainerService {
                 .build();
 
         trainerDao.save(trainerWithCredentials.getUserId(), trainerWithCredentials);
-
         LOGGER.info("Created trainer with ID: {}", trainerWithCredentials.getUserId());
 
         return trainerWithCredentials;
@@ -87,8 +86,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer existingTrainer = trainerDao.findById(id)
                 .orElseThrow(() -> {
                     LOGGER.warn("Attempt to update non-existing trainer with ID: {}", id);
-
-                    return new IllegalStateException("Trainer not found with ID: " + id);
+                    return new IllegalStateException("Trainer not found with ID: %d".formatted(id));
                 });
 
         Trainer updatedTrainer = Trainer.builder()
@@ -102,7 +100,6 @@ public class TrainerServiceImpl implements TrainerService {
                 .build();
 
         trainerDao.update(id, updatedTrainer);
-
         LOGGER.info("Updated trainer with ID: {}", updatedTrainer.getUserId());
 
         return updatedTrainer;

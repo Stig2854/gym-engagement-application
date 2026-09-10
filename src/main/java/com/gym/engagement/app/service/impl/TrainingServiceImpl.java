@@ -33,15 +33,13 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     public Training create(Training training) {
         validator.validateTraining(training);
-
         if (trainingDao.findById(training.getId()).isPresent()) {
             LOGGER.warn("Attempt to create training with existing ID: {}", training.getId());
 
-            throw new IllegalStateException("Training with ID " + training.getId() + " already exists");
+            throw new IllegalStateException("Training with ID %d already exists".formatted(training.getId()));
         }
 
         trainingDao.save(training.getId(), training);
-
         LOGGER.info("Created training with ID: {}", training.getId());
 
         return training;

@@ -40,11 +40,10 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public Trainee create(Trainee trainee) {
         validator.validateTrainee(trainee);
-
         if (traineeDao.findById(trainee.getUserId()).isPresent()) {
             LOGGER.warn("Attempt to create trainee with existing ID: {}", trainee.getUserId());
 
-            throw new IllegalStateException("Trainee with ID " + trainee.getUserId() + " already exists");
+            throw new IllegalStateException("Trainee with ID %d already exists".formatted(trainee.getUserId()));
         }
 
         String username = credentialGenerator.generateUsername(trainee.getFirstName(), trainee.getLastName());
@@ -62,7 +61,6 @@ public class TraineeServiceImpl implements TraineeService {
                 .build();
 
         traineeDao.save(traineeWithCredentials.getUserId(), traineeWithCredentials);
-
         LOGGER.info("Created trainee with ID: {}", traineeWithCredentials.getUserId());
 
         return traineeWithCredentials;
@@ -89,7 +87,7 @@ public class TraineeServiceImpl implements TraineeService {
                 .orElseThrow(() -> {
                     LOGGER.warn("Attempt to update non-existing trainee with ID: {}", id);
 
-                    return new IllegalStateException("Trainee not found with ID: " + id);
+                    return new IllegalStateException("Trainee not found with ID: %d".formatted(id));
                 });
 
         Trainee updatedTrainee = Trainee.builder()
@@ -104,7 +102,6 @@ public class TraineeServiceImpl implements TraineeService {
                 .build();
 
         traineeDao.update(id, updatedTrainee);
-
         LOGGER.info("Updated trainee with ID: {}", updatedTrainee.getUserId());
 
         return updatedTrainee;
@@ -118,11 +115,10 @@ public class TraineeServiceImpl implements TraineeService {
                 .orElseThrow(() -> {
                     LOGGER.warn("Attempt to delete non-existing trainee with ID: {}", id);
 
-                    return new IllegalStateException("Trainee not found with ID: " + id);
+                    return new IllegalStateException("Trainee not found with ID: %d".formatted(id));
                 });
 
         traineeDao.deleteById(id);
-
         LOGGER.info("Deleted trainee with ID: {}", id);
     }
 }
