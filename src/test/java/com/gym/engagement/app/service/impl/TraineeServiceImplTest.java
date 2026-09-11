@@ -1,29 +1,23 @@
 package com.gym.engagement.app.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 import com.gym.engagement.app.dao.TraineeDao;
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.service.common.CoreValidator;
 import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceImplTest {

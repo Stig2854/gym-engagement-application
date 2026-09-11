@@ -1,9 +1,5 @@
 package com.gym.engagement.app.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import com.gym.engagement.app.dto.TraineeDto;
 import com.gym.engagement.app.dto.TrainerDto;
 import com.gym.engagement.app.dto.TrainingDto;
@@ -12,10 +8,13 @@ import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.model.Training;
 import com.gym.engagement.app.model.TrainingType;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class GymMapperTest {
 

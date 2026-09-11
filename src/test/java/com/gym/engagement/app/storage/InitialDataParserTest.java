@@ -1,16 +1,14 @@
 package com.gym.engagement.app.storage;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.model.Training;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class InitialDataParserTest {
 

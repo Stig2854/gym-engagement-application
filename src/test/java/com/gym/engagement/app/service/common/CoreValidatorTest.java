@@ -1,14 +1,12 @@
 package com.gym.engagement.app.service.common;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.model.Training;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CoreValidatorTest {
 
