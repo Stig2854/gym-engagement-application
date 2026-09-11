@@ -18,7 +18,7 @@ public class InitialDataParser {
             case "TRAINEE" -> parseTrainee(values);
             case "TRAINER" -> parseTrainer(values);
             case "TRAINING" -> parseTraining(values);
-            default -> throw new IllegalArgumentException("Unsupported initial data record type: " + values[0]);
+            default -> throw new IllegalArgumentException("Unsupported initial data record type: %s".formatted(values[0]));
         };
     }
 

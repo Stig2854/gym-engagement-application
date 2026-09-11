@@ -1,8 +1,7 @@
-package com.gym.engagement.app.service.impl;
+package com.gym.engagement.app.service;
 
 import com.gym.engagement.app.dao.TrainerDao;
 import com.gym.engagement.app.model.Trainer;
-import com.gym.engagement.app.service.TrainerService;
 import com.gym.engagement.app.service.common.CoreValidator;
 import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 import org.slf4j.Logger;
