@@ -70,13 +70,11 @@ class TraineeServiceImplTest {
     @Test
     void create_ShouldGenerateCredentialsSaveAndReturnTrainee() {
         Trainee trainee = createTrainee();
-
         when(traineeDao.findById(TRAINEE_ID)).thenReturn(Optional.empty());
         when(credentialGenerator.generateUsername(FIRST_NAME, LAST_NAME)).thenReturn(USERNAME);
         when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
 
         Trainee actual = service.create(trainee);
-
         verify(validator).validateTrainee(trainee);
         verify(traineeDao).findById(TRAINEE_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
@@ -84,7 +82,6 @@ class TraineeServiceImplTest {
         verify(traineeDao).save(eq(TRAINEE_ID), traineeCaptor.capture());
 
         Trainee savedTrainee = traineeCaptor.getValue();
-
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
@@ -148,21 +145,18 @@ class TraineeServiceImplTest {
         when(traineeDao.findById(TRAINEE_ID)).thenReturn(Optional.of(existingTrainee));
 
         Trainee actual = service.update(TRAINEE_ID, traineeToUpdate);
-
         verify(validator).validateTrainee(traineeToUpdate);
         verify(validator).validateUpdateId(TRAINEE_ID, TRAINEE_ID, TRAINEE);
         verify(traineeDao).findById(TRAINEE_ID);
         verify(traineeDao).update(eq(TRAINEE_ID), traineeCaptor.capture());
 
         Trainee updatedTrainee = traineeCaptor.getValue();
-
         assertEquals(USERNAME, actual.getUsername());
         assertEquals(PASSWORD, actual.getPassword());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
-
         assertEquals(USERNAME, updatedTrainee.getUsername());
         assertEquals(PASSWORD, updatedTrainee.getPassword());
     }

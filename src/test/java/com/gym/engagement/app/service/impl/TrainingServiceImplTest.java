@@ -67,7 +67,6 @@ class TrainingServiceImplTest {
         when(trainingDao.findById(TRAINING_ID)).thenReturn(Optional.empty());
 
         Training actual = service.create(training);
-
         verify(validator).validateTraining(training);
         verify(trainingDao).findById(TRAINING_ID);
         verify(trainingDao).save(eq(TRAINING_ID), trainingCaptor.capture());

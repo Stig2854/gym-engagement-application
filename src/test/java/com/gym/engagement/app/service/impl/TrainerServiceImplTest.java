@@ -75,7 +75,6 @@ class TrainerServiceImplTest {
         when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
 
         Trainer actual = service.create(trainer);
-
         verify(validator).validateTrainer(trainer);
         verify(trainerDao).findById(TRAINER_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
@@ -83,7 +82,6 @@ class TrainerServiceImplTest {
         verify(trainerDao).save(eq(TRAINER_ID), trainerCaptor.capture());
 
         Trainer savedTrainer = trainerCaptor.getValue();
-
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
@@ -147,14 +145,12 @@ class TrainerServiceImplTest {
         when(trainerDao.findById(TRAINER_ID)).thenReturn(Optional.of(existingTrainer));
 
         Trainer actual = service.update(TRAINER_ID, trainerToUpdate);
-
         verify(validator).validateTrainer(trainerToUpdate);
         verify(validator).validateUpdateId(TRAINER_ID, TRAINER_ID, TRAINER);
         verify(trainerDao).findById(TRAINER_ID);
         verify(trainerDao).update(eq(TRAINER_ID), trainerCaptor.capture());
 
         Trainer updatedTrainer = trainerCaptor.getValue();
-
         assertEquals(USERNAME, actual.getUsername());
         assertEquals(PASSWORD, actual.getPassword());
         assertEquals(FIRST_NAME, actual.getFirstName());
