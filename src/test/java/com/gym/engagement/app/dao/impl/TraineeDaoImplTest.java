@@ -1,36 +1,43 @@
 package com.gym.engagement.app.dao.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.gym.engagement.app.model.Trainee;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class TraineeDaoImplTest {
 
     private static final Long FIRST_TRAINEE_ID = 1L;
     private static final Long SECOND_TRAINEE_ID = 2L;
+    private static final String FIRST_NAME = "John";
+    private static final String LAST_NAME = "Smith";
+    private static final String UPDATED_LAST_NAME = "Johnson";
 
-    private TraineeDaoImpl traineeDao;
     private Map<Long, Trainee> storage;
+
+    private TraineeDaoImpl dao;
 
     @BeforeEach
     void setUp() {
         storage = new LinkedHashMap<>();
-        traineeDao = new TraineeDaoImpl();
-        traineeDao.setStorage(storage);
+        dao = new TraineeDaoImpl();
+        dao.setStorage(storage);
     }
 
     @Test
     void save_ShouldAddTraineeToStorage() {
-        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, "John", "Smith");
+        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, LAST_NAME);
 
-        traineeDao.save(FIRST_TRAINEE_ID, trainee);
+        dao.save(FIRST_TRAINEE_ID, trainee);
 
         assertEquals(1, storage.size());
         assertSame(trainee, storage.get(FIRST_TRAINEE_ID));
@@ -38,64 +45,58 @@ class TraineeDaoImplTest {
 
     @Test
     void findById_ShouldReturnTrainee_WhenTraineeExists() {
-        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, "John", "Smith");
+        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, LAST_NAME);
         storage.put(FIRST_TRAINEE_ID, trainee);
 
-        Optional<Trainee> result = traineeDao.findById(FIRST_TRAINEE_ID);
+        Optional<Trainee> actual = dao.findById(FIRST_TRAINEE_ID);
 
-        assertTrue(result.isPresent());
-        assertSame(trainee, result.get());
+        assertTrue(actual.isPresent());
+        assertSame(trainee, actual.get());
     }
 
     @Test
     void findById_ShouldReturnEmptyOptional_WhenTraineeDoesNotExist() {
-        Optional<Trainee> result = traineeDao.findById(FIRST_TRAINEE_ID);
+        Optional<Trainee> actual = dao.findById(FIRST_TRAINEE_ID);
 
-        assertTrue(result.isEmpty());
+        assertTrue(actual.isEmpty());
     }
 
     @Test
-    void findAll_ShouldReturnAllTraineesWithoutChangingStorage() {
-        Trainee firstTrainee = createTrainee(FIRST_TRAINEE_ID, "John", "Smith");
+    void findAll_ShouldReturnAllTrainees() {
+        Trainee firstTrainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, LAST_NAME);
         Trainee secondTrainee = createTrainee(SECOND_TRAINEE_ID, "Anna", "Brown");
-
         storage.put(FIRST_TRAINEE_ID, firstTrainee);
         storage.put(SECOND_TRAINEE_ID, secondTrainee);
 
-        List<Trainee> result = traineeDao.findAll();
+        List<Trainee> actual = dao.findAll();
 
-        assertEquals(2, result.size());
-        assertTrue(result.contains(firstTrainee));
-        assertTrue(result.contains(secondTrainee));
-
-        result.clear();
-
-        assertEquals(2, storage.size());
+        assertEquals(2, actual.size());
+        assertTrue(actual.contains(firstTrainee));
+        assertTrue(actual.contains(secondTrainee));
     }
 
     @Test
     void update_ShouldReplaceExistingTraineeInStorage() {
-        Trainee existingTrainee = createTrainee(FIRST_TRAINEE_ID, "John", "Smith");
-        Trainee updatedTrainee = createTrainee(FIRST_TRAINEE_ID, "John", "Johnson");
-
+        Trainee existingTrainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, LAST_NAME);
+        Trainee updatedTrainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, UPDATED_LAST_NAME);
         storage.put(FIRST_TRAINEE_ID, existingTrainee);
 
-        traineeDao.update(FIRST_TRAINEE_ID, updatedTrainee);
+        dao.update(FIRST_TRAINEE_ID, updatedTrainee);
 
         assertEquals(1, storage.size());
         assertSame(updatedTrainee, storage.get(FIRST_TRAINEE_ID));
-        assertEquals("Johnson", storage.get(FIRST_TRAINEE_ID).getLastName());
+        assertEquals(UPDATED_LAST_NAME, storage.get(FIRST_TRAINEE_ID).getLastName());
     }
 
     @Test
     void deleteById_ShouldRemoveTraineeFromStorage() {
-        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, "John", "Smith");
+        Trainee trainee = createTrainee(FIRST_TRAINEE_ID, FIRST_NAME, LAST_NAME);
         storage.put(FIRST_TRAINEE_ID, trainee);
 
-        traineeDao.deleteById(FIRST_TRAINEE_ID);
+        dao.deleteById(FIRST_TRAINEE_ID);
 
         assertTrue(storage.isEmpty());
-        assertTrue(traineeDao.findById(FIRST_TRAINEE_ID).isEmpty());
+        assertTrue(dao.findById(FIRST_TRAINEE_ID).isEmpty());
     }
 
     private Trainee createTrainee(Long id, String firstName, String lastName) {

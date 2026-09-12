@@ -1,5 +1,9 @@
 package com.gym.engagement.app.mapper;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.gym.engagement.app.dto.TraineeDto;
 import com.gym.engagement.app.dto.TrainerDto;
 import com.gym.engagement.app.dto.TrainingDto;
@@ -8,196 +12,206 @@ import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.model.Trainer;
 import com.gym.engagement.app.model.Training;
 import com.gym.engagement.app.model.TrainingType;
+
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class GymMapperTest {
 
-    private GymMapper gymMapper;
+    private static final Long TRAINEE_ID = 1L;
+    private static final Long TRAINER_ID = 2L;
+    private static final Long TRAINING_ID = 3L;
+
+    private static final String TRAINEE_FIRST_NAME = "John";
+    private static final String TRAINEE_LAST_NAME = "Smith";
+    private static final String TRAINEE_USERNAME = "John.Smith";
+
+    private static final String TRAINER_FIRST_NAME = "Anna";
+    private static final String TRAINER_LAST_NAME = "Brown";
+    private static final String TRAINER_USERNAME = "Anna.Brown";
+
+    private static final String PASSWORD = "Abc123Xyz9";
+    private static final String ADDRESS = "Kyiv, Ukraine";
+    private static final String YOGA_TRAINING_TYPE = "Yoga";
+    private static final String STRENGTH_TRAINING_TYPE = "Strength";
+    private static final String TRAINING_NAME = "Morning strength training";
+
+    private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1995, 5, 10);
+    private static final LocalDate TRAINING_DATE = LocalDate.of(2026, 9, 10);
+
+    private GymMapper mapper;
 
     @BeforeEach
     void setUp() {
-        gymMapper = Mappers.getMapper(GymMapper.class);
+        mapper = Mappers.getMapper(GymMapper.class);
     }
 
     @Test
     void toEntity_ShouldMapTraineeDtoWithoutCredentials() {
         TraineeDto traineeDto = createTraineeDto();
 
-        Trainee trainee = gymMapper.toEntity(traineeDto);
+        Trainee actual = mapper.toEntity(traineeDto);
 
-        assertAll(
-                () -> assertEquals(1L, trainee.getUserId()),
-                () -> assertEquals("John", trainee.getFirstName()),
-                () -> assertEquals("Smith", trainee.getLastName()),
-                () -> assertEquals(true, trainee.isActive()),
-                () -> assertEquals(LocalDate.of(1995, 5, 10), trainee.getDateOfBirth()),
-                () -> assertEquals("Kyiv, Ukraine", trainee.getAddress()),
-                () -> assertNull(trainee.getUsername()),
-                () -> assertNull(trainee.getPassword())
-        );
+        assertEquals(TRAINEE_ID, actual.getUserId());
+        assertEquals(TRAINEE_FIRST_NAME, actual.getFirstName());
+        assertEquals(TRAINEE_LAST_NAME, actual.getLastName());
+        assertTrue(actual.isActive());
+        assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
+        assertEquals(ADDRESS, actual.getAddress());
+        assertNull(actual.getUsername());
+        assertNull(actual.getPassword());
     }
 
     @Test
-    void toDto_ShouldMapTraineeWithoutCredentials() {
-        Trainee trainee = Trainee.builder()
-                .userId(1L)
-                .firstName("John")
-                .lastName("Smith")
-                .username("John.Smith")
-                .password("Abc123Xyz9")
-                .active(true)
-                .dateOfBirth(LocalDate.of(1995, 5, 10))
-                .address("Kyiv, Ukraine")
-                .build();
+    void toDto_ShouldMapTrainee() {
+        Trainee trainee = createTrainee();
 
-        TraineeDto traineeDto = gymMapper.toDto(trainee);
+        TraineeDto actual = mapper.toDto(trainee);
 
-        assertAll(
-                () -> assertEquals(1L, traineeDto.getUserId()),
-                () -> assertEquals("John", traineeDto.getFirstName()),
-                () -> assertEquals("Smith", traineeDto.getLastName()),
-                () -> assertEquals(true, traineeDto.isActive()),
-                () -> assertEquals(LocalDate.of(1995, 5, 10), traineeDto.getDateOfBirth()),
-                () -> assertEquals("Kyiv, Ukraine", traineeDto.getAddress())
-        );
+        assertEquals(TRAINEE_ID, actual.getUserId());
+        assertEquals(TRAINEE_FIRST_NAME, actual.getFirstName());
+        assertEquals(TRAINEE_LAST_NAME, actual.getLastName());
+        assertTrue(actual.isActive());
+        assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
+        assertEquals(ADDRESS, actual.getAddress());
     }
 
     @Test
     void toEntity_ShouldMapTrainerDtoWithoutCredentials() {
         TrainerDto trainerDto = createTrainerDto();
 
-        Trainer trainer = gymMapper.toEntity(trainerDto);
+        Trainer actual = mapper.toEntity(trainerDto);
 
-        assertAll(
-                () -> assertEquals(2L, trainer.getUserId()),
-                () -> assertEquals("Anna", trainer.getFirstName()),
-                () -> assertEquals("Brown", trainer.getLastName()),
-                () -> assertEquals(true, trainer.isActive()),
-                () -> assertEquals(
-                        "Yoga",
-                        trainer.getSpecialization().getTrainingTypeName()),
-                () -> assertNull(trainer.getUsername()),
-                () -> assertNull(trainer.getPassword())
-        );
+        assertEquals(TRAINER_ID, actual.getUserId());
+        assertEquals(TRAINER_FIRST_NAME, actual.getFirstName());
+        assertEquals(TRAINER_LAST_NAME, actual.getLastName());
+        assertTrue(actual.isActive());
+        assertEquals(YOGA_TRAINING_TYPE, actual.getSpecialization().getTrainingTypeName());
+        assertNull(actual.getUsername());
+        assertNull(actual.getPassword());
     }
 
     @Test
-    void toDto_ShouldMapTrainerWithoutCredentials() {
-        Trainer trainer = Trainer.builder()
-                .userId(2L)
-                .firstName("Anna")
-                .lastName("Brown")
-                .username("Anna.Brown")
-                .password("Abc123Xyz9")
-                .active(true)
-                .specialization(TrainingType.builder()
-                        .trainingTypeName("Yoga")
-                        .build())
-                .build();
+    void toDto_ShouldMapTrainer() {
+        Trainer trainer = createTrainer();
 
-        TrainerDto trainerDto = gymMapper.toDto(trainer);
+        TrainerDto actual = mapper.toDto(trainer);
 
-        assertAll(
-                () -> assertEquals(2L, trainerDto.getUserId()),
-                () -> assertEquals("Anna", trainerDto.getFirstName()),
-                () -> assertEquals("Brown", trainerDto.getLastName()),
-                () -> assertEquals(true, trainerDto.isActive()),
-                () -> assertEquals(
-                        "Yoga",
-                        trainerDto.getSpecialization().getTrainingTypeName())
-        );
+        assertEquals(TRAINER_ID, actual.getUserId());
+        assertEquals(TRAINER_FIRST_NAME, actual.getFirstName());
+        assertEquals(TRAINER_LAST_NAME, actual.getLastName());
+        assertTrue(actual.isActive());
+        assertEquals(YOGA_TRAINING_TYPE, actual.getSpecialization().getTrainingTypeName());
     }
 
     @Test
     void toEntity_ShouldMapTrainingDto() {
         TrainingDto trainingDto = createTrainingDto();
 
-        Training training = gymMapper.toEntity(trainingDto);
+        Training actual = mapper.toEntity(trainingDto);
 
-        assertAll(
-                () -> assertEquals(3L, training.getId()),
-                () -> assertEquals(1L, training.getTraineeId()),
-                () -> assertEquals(2L, training.getTrainerId()),
-                () -> assertEquals("Morning strength training", training.getTrainingName()),
-                () -> assertEquals(
-                        "Strength",
-                        training.getTrainingType().getTrainingTypeName()),
-                () -> assertEquals(LocalDate.of(2026, 9, 10), training.getTrainingDate()),
-                () -> assertEquals(60, training.getTrainingDuration())
-        );
+        assertEquals(TRAINING_ID, actual.getId());
+        assertEquals(TRAINEE_ID, actual.getTraineeId());
+        assertEquals(TRAINER_ID, actual.getTrainerId());
+        assertEquals(TRAINING_NAME, actual.getTrainingName());
+        assertEquals(STRENGTH_TRAINING_TYPE, actual.getTrainingType().getTrainingTypeName());
+        assertEquals(TRAINING_DATE, actual.getTrainingDate());
+        assertEquals(60, actual.getTrainingDuration());
     }
 
     @Test
     void toDto_ShouldMapTraining() {
-        Training training = Training.builder()
-                .id(3L)
-                .traineeId(1L)
-                .trainerId(2L)
-                .trainingName("Morning strength training")
-                .trainingType(TrainingType.builder()
-                        .trainingTypeName("Strength")
-                        .build())
-                .trainingDate(LocalDate.of(2026, 9, 10))
-                .trainingDuration(60)
-                .build();
+        Training training = createTraining();
 
-        TrainingDto trainingDto = gymMapper.toDto(training);
+        TrainingDto actual = mapper.toDto(training);
 
-        assertAll(
-                () -> assertEquals(3L, trainingDto.getId()),
-                () -> assertEquals(1L, trainingDto.getTraineeId()),
-                () -> assertEquals(2L, trainingDto.getTrainerId()),
-                () -> assertEquals(
-                        "Morning strength training",
-                        trainingDto.getTrainingName()),
-                () -> assertEquals(
-                        "Strength",
-                        trainingDto.getTrainingType().getTrainingTypeName()),
-                () -> assertEquals(LocalDate.of(2026, 9, 10), trainingDto.getTrainingDate()),
-                () -> assertEquals(60, trainingDto.getTrainingDuration())
-        );
+        assertEquals(TRAINING_ID, actual.getId());
+        assertEquals(TRAINEE_ID, actual.getTraineeId());
+        assertEquals(TRAINER_ID, actual.getTrainerId());
+        assertEquals(TRAINING_NAME, actual.getTrainingName());
+        assertEquals(STRENGTH_TRAINING_TYPE, actual.getTrainingType().getTrainingTypeName());
+        assertEquals(TRAINING_DATE, actual.getTrainingDate());
+        assertEquals(60, actual.getTrainingDuration());
     }
 
     private TraineeDto createTraineeDto() {
         TraineeDto traineeDto = new TraineeDto();
-        traineeDto.setUserId(1L);
-        traineeDto.setFirstName("John");
-        traineeDto.setLastName("Smith");
+        traineeDto.setUserId(TRAINEE_ID);
+        traineeDto.setFirstName(TRAINEE_FIRST_NAME);
+        traineeDto.setLastName(TRAINEE_LAST_NAME);
         traineeDto.setActive(true);
-        traineeDto.setDateOfBirth(LocalDate.of(1995, 5, 10));
-        traineeDto.setAddress("Kyiv, Ukraine");
+        traineeDto.setDateOfBirth(DATE_OF_BIRTH);
+        traineeDto.setAddress(ADDRESS);
 
         return traineeDto;
     }
 
+    private Trainee createTrainee() {
+        return Trainee.builder()
+                .userId(TRAINEE_ID)
+                .firstName(TRAINEE_FIRST_NAME)
+                .lastName(TRAINEE_LAST_NAME)
+                .username(TRAINEE_USERNAME)
+                .password(PASSWORD)
+                .active(true)
+                .dateOfBirth(DATE_OF_BIRTH)
+                .address(ADDRESS)
+                .build();
+    }
+
     private TrainerDto createTrainerDto() {
         TrainerDto trainerDto = new TrainerDto();
-        trainerDto.setUserId(2L);
-        trainerDto.setFirstName("Anna");
-        trainerDto.setLastName("Brown");
+        trainerDto.setUserId(TRAINER_ID);
+        trainerDto.setFirstName(TRAINER_FIRST_NAME);
+        trainerDto.setLastName(TRAINER_LAST_NAME);
         trainerDto.setActive(true);
-        trainerDto.setSpecialization(createTrainingTypeDto("Yoga"));
+        trainerDto.setSpecialization(createTrainingTypeDto(YOGA_TRAINING_TYPE));
 
         return trainerDto;
     }
 
+    private Trainer createTrainer() {
+        TrainingType specialization = createTrainingType(YOGA_TRAINING_TYPE);
+
+        return Trainer.builder()
+                .userId(TRAINER_ID)
+                .firstName(TRAINER_FIRST_NAME)
+                .lastName(TRAINER_LAST_NAME)
+                .username(TRAINER_USERNAME)
+                .password(PASSWORD)
+                .active(true)
+                .specialization(specialization)
+                .build();
+    }
+
     private TrainingDto createTrainingDto() {
         TrainingDto trainingDto = new TrainingDto();
-        trainingDto.setId(3L);
-        trainingDto.setTraineeId(1L);
-        trainingDto.setTrainerId(2L);
-        trainingDto.setTrainingName("Morning strength training");
-        trainingDto.setTrainingType(createTrainingTypeDto("Strength"));
-        trainingDto.setTrainingDate(LocalDate.of(2026, 9, 10));
+        trainingDto.setId(TRAINING_ID);
+        trainingDto.setTraineeId(TRAINEE_ID);
+        trainingDto.setTrainerId(TRAINER_ID);
+        trainingDto.setTrainingName(TRAINING_NAME);
+        trainingDto.setTrainingType(createTrainingTypeDto(STRENGTH_TRAINING_TYPE));
+        trainingDto.setTrainingDate(TRAINING_DATE);
         trainingDto.setTrainingDuration(60);
 
         return trainingDto;
+    }
+
+    private Training createTraining() {
+        TrainingType trainingType = createTrainingType(STRENGTH_TRAINING_TYPE);
+
+        return Training.builder()
+                .id(TRAINING_ID)
+                .traineeId(TRAINEE_ID)
+                .trainerId(TRAINER_ID)
+                .trainingName(TRAINING_NAME)
+                .trainingType(trainingType)
+                .trainingDate(TRAINING_DATE)
+                .trainingDuration(60)
+                .build();
     }
 
     private TrainingTypeDto createTrainingTypeDto(String trainingTypeName) {
@@ -205,5 +219,9 @@ class GymMapperTest {
         trainingTypeDto.setTrainingTypeName(trainingTypeName);
 
         return trainingTypeDto;
+    }
+
+    private TrainingType createTrainingType(String trainingTypeName) {
+        return TrainingType.builder().trainingTypeName(trainingTypeName).build();
     }
 }
