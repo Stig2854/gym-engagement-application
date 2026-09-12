@@ -70,7 +70,15 @@ public class TrainerServiceImpl implements TrainerService {
         trainerDao.save(trainerWithCredentials.getUserId(), trainerWithCredentials);
         LOGGER.info("Created trainer with ID: {}", trainerWithCredentials.getUserId());
 
-        return trainerWithCredentials;
+        return Trainer.builder()
+                .userId(trainerWithCredentials.getUserId())
+                .firstName(trainerWithCredentials.getFirstName())
+                .lastName(trainerWithCredentials.getLastName())
+                .username(trainerWithCredentials.getUsername())
+                .password(rawPassword)
+                .active(trainerWithCredentials.isActive())
+                .specialization(trainerWithCredentials.getSpecialization())
+                .build();
     }
 
     @Override

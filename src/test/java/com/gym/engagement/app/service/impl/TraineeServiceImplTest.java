@@ -1,17 +1,21 @@
 package com.gym.engagement.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.gym.engagement.app.dao.TraineeDao;
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.service.common.CoreValidator;
@@ -21,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +33,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +71,9 @@ class TraineeServiceImplTest {
 
     private TraineeServiceImpl service;
 
+    private Logger logger;
+    private ListAppender<ILoggingEvent> logAppender;
+
     @BeforeEach
     void setUp() {
         service = new TraineeServiceImpl();
@@ -72,6 +81,39 @@ class TraineeServiceImplTest {
         service.setValidator(validator);
         service.setCredentialGenerator(credentialGenerator);
         service.setPasswordEncoder(passwordEncoder);
+
+        logger = (Logger) LoggerFactory.getLogger(TraineeServiceImpl.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        logger.addAppender(logAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(logAppender);
+        logAppender.stop();
+    }
+
+    @Test
+    void create_ShouldLogInfo_WhenCreatingTrainee() {
+        Trainee trainee = createTrainee();
+
+        when(traineeDao.findById(TRAINEE_ID)).thenReturn(Optional.empty());
+        when(credentialGenerator.generateUsername(FIRST_NAME, LAST_NAME)).thenReturn(USERNAME);
+        when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
+
+        service.create(trainee);
+
+        List<ILoggingEvent> infoLogs = logAppender.list.stream()
+                .filter(event -> event.getLevel() == Level.INFO)
+                .toList();
+
+        assertTrue(infoLogs.stream().anyMatch(event -> event.getFormattedMessage()
+                .equals("Created trainee with ID: " + TRAINEE_ID)));
+
+        assertFalse(logAppender.list.stream().map(ILoggingEvent::getFormattedMessage)
+                .anyMatch(message -> message.contains(PASSWORD) || message.contains(HASHED_PASSWORD)));
     }
 
     @Test
@@ -84,6 +126,7 @@ class TraineeServiceImplTest {
         when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
 
         Trainee actual = service.create(trainee);
+
         verify(validator).validateTrainee(trainee);
         verify(traineeDao).findById(TRAINEE_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
@@ -92,17 +135,18 @@ class TraineeServiceImplTest {
         verify(traineeDao).save(eq(TRAINEE_ID), traineeCaptor.capture());
 
         Trainee savedTrainee = traineeCaptor.getValue();
+
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
         assertEquals(USERNAME, actual.getUsername());
-        assertEquals(HASHED_PASSWORD, actual.getPassword());
+        assertEquals(PASSWORD, actual.getPassword());
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
         assertTrue(actual.isActive());
-        assertEquals(actual.getUserId(), savedTrainee.getUserId());
-        assertEquals(actual.getUsername(), savedTrainee.getUsername());
-        assertEquals(actual.getPassword(), savedTrainee.getPassword());
+        assertEquals(TRAINEE_ID, savedTrainee.getUserId());
+        assertEquals(USERNAME, savedTrainee.getUsername());
+        assertEquals(HASHED_PASSWORD, savedTrainee.getPassword());
     }
 
     @Test

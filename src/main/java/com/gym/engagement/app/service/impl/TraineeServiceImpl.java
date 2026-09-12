@@ -71,7 +71,16 @@ public class TraineeServiceImpl implements TraineeService {
         traineeDao.save(traineeWithCredentials.getUserId(), traineeWithCredentials);
         LOGGER.info("Created trainee with ID: {}", traineeWithCredentials.getUserId());
 
-        return traineeWithCredentials;
+        return Trainee.builder()
+                .userId(traineeWithCredentials.getUserId())
+                .firstName(traineeWithCredentials.getFirstName())
+                .lastName(traineeWithCredentials.getLastName())
+                .username(traineeWithCredentials.getUsername())
+                .password(rawPassword)
+                .active(traineeWithCredentials.isActive())
+                .dateOfBirth(traineeWithCredentials.getDateOfBirth())
+                .address(traineeWithCredentials.getAddress())
+                .build();
     }
 
     @Override

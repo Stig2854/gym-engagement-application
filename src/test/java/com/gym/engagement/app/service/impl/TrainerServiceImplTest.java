@@ -1,6 +1,7 @@
 package com.gym.engagement.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -82,6 +83,7 @@ class TrainerServiceImplTest {
         when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
 
         Trainer actual = service.create(trainer);
+
         verify(validator).validateTrainer(trainer);
         verify(trainerDao).findById(TRAINER_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
@@ -90,16 +92,18 @@ class TrainerServiceImplTest {
         verify(trainerDao).save(eq(TRAINER_ID), trainerCaptor.capture());
 
         Trainer savedTrainer = trainerCaptor.getValue();
+
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
         assertEquals(USERNAME, actual.getUsername());
-        assertEquals(HASHED_PASSWORD, actual.getPassword());
+        assertEquals(PASSWORD, actual.getPassword());
         assertTrue(actual.isActive());
         assertSame(trainer.getSpecialization(), actual.getSpecialization());
-        assertEquals(actual.getUserId(), savedTrainer.getUserId());
-        assertEquals(actual.getUsername(), savedTrainer.getUsername());
-        assertEquals(actual.getPassword(), savedTrainer.getPassword());
+        assertEquals(TRAINER_ID, savedTrainer.getUserId());
+        assertEquals(USERNAME, savedTrainer.getUsername());
+        assertEquals(HASHED_PASSWORD, savedTrainer.getPassword());
+        assertNotEquals(actual.getPassword(), savedTrainer.getPassword());
     }
 
     @Test
