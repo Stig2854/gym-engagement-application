@@ -38,7 +38,6 @@ class InitialDataParserTest {
         Object actual = parser.parse(line);
 
         Trainee trainee = assertInstanceOf(Trainee.class, actual);
-
         assertEquals(TRAINEE_ID, trainee.getUserId());
         assertEquals("Oleksii", trainee.getFirstName());
         assertEquals("Koval", trainee.getLastName());
@@ -54,9 +53,7 @@ class InitialDataParserTest {
         String line = "TRAINER,2,Marta,Shevchenko,Marta.Shevchenko,temporaryPass2,true,Yoga";
 
         Object actual = parser.parse(line);
-
         Trainer trainer = assertInstanceOf(Trainer.class, actual);
-
         assertEquals(TRAINER_ID, trainer.getUserId());
         assertEquals("Marta", trainer.getFirstName());
         assertEquals("Shevchenko", trainer.getLastName());
@@ -71,9 +68,7 @@ class InitialDataParserTest {
         String line = "TRAINING,1,1,2,Morning Yoga,Yoga,2026-09-05,60";
 
         Object actual = parser.parse(line);
-
         Training training = assertInstanceOf(Training.class, actual);
-
         assertEquals(TRAINING_ID, training.getId());
         assertEquals(TRAINEE_ID, training.getTraineeId());
         assertEquals(TRAINER_ID, training.getTrainerId());

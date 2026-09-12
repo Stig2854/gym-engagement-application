@@ -8,6 +8,7 @@ import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class TraineeServiceImpl implements TraineeService {
     private TraineeDao traineeDao;
     private CoreValidator validator;
     private ProfileCredentialGenerator credentialGenerator;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
@@ -37,33 +39,34 @@ public class TraineeServiceImpl implements TraineeService {
         this.validator = validator;
     }
 
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     public Trainee create(Trainee trainee) {
         validator.validateTrainee(trainee);
+
         if (traineeDao.findById(trainee.getUserId()).isPresent()) {
             LOGGER.warn("Attempt to create trainee with existing ID: {}", trainee.getUserId());
 
-            throw new IllegalStateException("Trainee with ID %d already exists".formatted(trainee.getUserId()));
+            throw new IllegalStateException(
+                    "Trainee with ID %d already exists".formatted(trainee.getUserId()));
         }
 
         String username = credentialGenerator.generateUsername(trainee.getFirstName(), trainee.getLastName());
-        String password = credentialGenerator.generatePassword();
+        String rawPassword = credentialGenerator.generatePassword();
 
-        Trainee traineeWithCredentials = Trainee.builder()
-                .userId(trainee.getUserId())
-                .firstName(trainee.getFirstName())
-                .lastName(trainee.getLastName())
+        Trainee traineeWithCredentials = trainee.toBuilder()
                 .username(username)
-                .password(password)
-                .active(trainee.isActive())
-                .dateOfBirth(trainee.getDateOfBirth())
-                .address(trainee.getAddress())
+                .password(passwordEncoder.encode(rawPassword))
                 .build();
 
         traineeDao.save(traineeWithCredentials.getUserId(), traineeWithCredentials);
         LOGGER.info("Created trainee with ID: {}", traineeWithCredentials.getUserId());
 
-        return traineeWithCredentials;
+        return traineeWithCredentials.toBuilder().password(rawPassword).build();
     }
 
     @Override
@@ -84,21 +87,14 @@ public class TraineeServiceImpl implements TraineeService {
         validator.validateUpdateId(id, trainee.getUserId(), "Trainee");
 
         Trainee existingTrainee = traineeDao.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.warn("Attempt to update non-existing trainee with ID: {}", id);
+                .orElseThrow(() -> {LOGGER.warn("Attempt to update non-existing trainee with ID: {}", id);
 
                     return new IllegalStateException("Trainee not found with ID: %d".formatted(id));
                 });
 
-        Trainee updatedTrainee = Trainee.builder()
-                .userId(trainee.getUserId())
-                .firstName(trainee.getFirstName())
-                .lastName(trainee.getLastName())
+        Trainee updatedTrainee = trainee.toBuilder()
                 .username(existingTrainee.getUsername())
                 .password(existingTrainee.getPassword())
-                .active(trainee.isActive())
-                .dateOfBirth(trainee.getDateOfBirth())
-                .address(trainee.getAddress())
                 .build();
 
         traineeDao.update(id, updatedTrainee);
@@ -112,8 +108,7 @@ public class TraineeServiceImpl implements TraineeService {
         validator.validateId(id, "Trainee");
 
         traineeDao.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.warn("Attempt to delete non-existing trainee with ID: {}", id);
+                .orElseThrow(() -> {LOGGER.warn("Attempt to delete non-existing trainee with ID: {}", id);
 
                     return new IllegalStateException("Trainee not found with ID: %d".formatted(id));
                 });

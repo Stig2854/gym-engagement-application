@@ -1,6 +1,7 @@
 package com.gym.engagement.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceImplTest {
@@ -39,6 +41,7 @@ class TrainerServiceImplTest {
     private static final String LAST_NAME = "Smith";
     private static final String USERNAME = "John.Smith";
     private static final String PASSWORD = "Abc123Xyz9";
+    private static final String HASHED_PASSWORD = "$2a$10$hashedPasswordForTest";
     private static final String YOGA = "Yoga";
     private static final String FITNESS = "Fitness";
     private static final String TRAINER_ALREADY_EXISTS_MESSAGE = "Trainer with ID 1 already exists";
@@ -53,6 +56,9 @@ class TrainerServiceImplTest {
     @Mock
     private ProfileCredentialGenerator credentialGenerator;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @Captor
     private ArgumentCaptor<Trainer> trainerCaptor;
 
@@ -64,6 +70,7 @@ class TrainerServiceImplTest {
         service.setTrainerDao(trainerDao);
         service.setValidator(validator);
         service.setCredentialGenerator(credentialGenerator);
+        service.setPasswordEncoder(passwordEncoder);
     }
 
     @Test
@@ -73,15 +80,19 @@ class TrainerServiceImplTest {
         when(trainerDao.findById(TRAINER_ID)).thenReturn(Optional.empty());
         when(credentialGenerator.generateUsername(FIRST_NAME, LAST_NAME)).thenReturn(USERNAME);
         when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
 
         Trainer actual = service.create(trainer);
+
         verify(validator).validateTrainer(trainer);
         verify(trainerDao).findById(TRAINER_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
         verify(credentialGenerator).generatePassword();
+        verify(passwordEncoder).encode(PASSWORD);
         verify(trainerDao).save(eq(TRAINER_ID), trainerCaptor.capture());
 
         Trainer savedTrainer = trainerCaptor.getValue();
+
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
@@ -89,10 +100,10 @@ class TrainerServiceImplTest {
         assertEquals(PASSWORD, actual.getPassword());
         assertTrue(actual.isActive());
         assertSame(trainer.getSpecialization(), actual.getSpecialization());
-
-        assertEquals(actual.getUserId(), savedTrainer.getUserId());
-        assertEquals(actual.getUsername(), savedTrainer.getUsername());
-        assertEquals(actual.getPassword(), savedTrainer.getPassword());
+        assertEquals(TRAINER_ID, savedTrainer.getUserId());
+        assertEquals(USERNAME, savedTrainer.getUsername());
+        assertEquals(HASHED_PASSWORD, savedTrainer.getPassword());
+        assertNotEquals(actual.getPassword(), savedTrainer.getPassword());
     }
 
     @Test
@@ -106,7 +117,7 @@ class TrainerServiceImplTest {
         assertEquals(TRAINER_ALREADY_EXISTS_MESSAGE, exception.getMessage());
         verify(validator).validateTrainer(trainer);
         verify(trainerDao).findById(TRAINER_ID);
-        verifyNoInteractions(credentialGenerator);
+        verifyNoInteractions(credentialGenerator, passwordEncoder);
         verify(trainerDao, never()).save(eq(TRAINER_ID), any());
     }
 
@@ -149,16 +160,17 @@ class TrainerServiceImplTest {
         verify(validator).validateUpdateId(TRAINER_ID, TRAINER_ID, TRAINER);
         verify(trainerDao).findById(TRAINER_ID);
         verify(trainerDao).update(eq(TRAINER_ID), trainerCaptor.capture());
+        verifyNoInteractions(passwordEncoder);
 
         Trainer updatedTrainer = trainerCaptor.getValue();
         assertEquals(USERNAME, actual.getUsername());
-        assertEquals(PASSWORD, actual.getPassword());
+        assertEquals(HASHED_PASSWORD, actual.getPassword());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
         assertTrue(actual.isActive());
         assertSame(newSpecialization, actual.getSpecialization());
         assertEquals(USERNAME, updatedTrainer.getUsername());
-        assertEquals(PASSWORD, updatedTrainer.getPassword());
+        assertEquals(HASHED_PASSWORD, updatedTrainer.getPassword());
         assertSame(newSpecialization, updatedTrainer.getSpecialization());
     }
 
@@ -197,7 +209,7 @@ class TrainerServiceImplTest {
                 .firstName("Old")
                 .lastName(TRAINER)
                 .username(USERNAME)
-                .password(PASSWORD)
+                .password(HASHED_PASSWORD)
                 .active(false)
                 .specialization(createTrainingType(YOGA))
                 .build();

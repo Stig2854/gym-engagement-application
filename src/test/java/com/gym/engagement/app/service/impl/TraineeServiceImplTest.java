@@ -1,6 +1,7 @@
 package com.gym.engagement.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,15 +12,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.gym.engagement.app.dao.TraineeDao;
 import com.gym.engagement.app.model.Trainee;
 import com.gym.engagement.app.service.common.CoreValidator;
 import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 
 import java.time.LocalDate;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +34,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceImplTest {
@@ -39,6 +48,7 @@ class TraineeServiceImplTest {
     private static final String LAST_NAME = "Smith";
     private static final String USERNAME = "John.Smith";
     private static final String PASSWORD = "Abc123Xyz9";
+    private static final String HASHED_PASSWORD = "$2a$10$hashedPasswordForTest";
     private static final String ADDRESS = "Kyiv, Ukraine";
     private static final String TRAINEE_NOT_FOUND_MESSAGE = "Trainee not found with ID: 1";
     private static final String TRAINEE_ALREADY_EXISTS_MESSAGE = "Trainee with ID 1 already exists";
@@ -54,10 +64,16 @@ class TraineeServiceImplTest {
     @Mock
     private ProfileCredentialGenerator credentialGenerator;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @Captor
     private ArgumentCaptor<Trainee> traineeCaptor;
 
     private TraineeServiceImpl service;
+
+    private Logger logger;
+    private ListAppender<ILoggingEvent> logAppender;
 
     @BeforeEach
     void setUp() {
@@ -65,23 +81,60 @@ class TraineeServiceImplTest {
         service.setTraineeDao(traineeDao);
         service.setValidator(validator);
         service.setCredentialGenerator(credentialGenerator);
+        service.setPasswordEncoder(passwordEncoder);
+
+        logger = (Logger) LoggerFactory.getLogger(TraineeServiceImpl.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        logger.addAppender(logAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(logAppender);
+        logAppender.stop();
+    }
+
+    @Test
+    void create_ShouldLogInfo_WhenCreatingTrainee() {
+        Trainee trainee = createTrainee();
+
+        when(traineeDao.findById(TRAINEE_ID)).thenReturn(Optional.empty());
+        when(credentialGenerator.generateUsername(FIRST_NAME, LAST_NAME)).thenReturn(USERNAME);
+        when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
+
+        service.create(trainee);
+
+        assertEquals(1, logAppender.list.size());
+        Iterator<ILoggingEvent> iterator = logAppender.list.iterator();
+        ILoggingEvent event = iterator.next();
+        assertEquals(Level.INFO, event.getLevel());
+        assertEquals("Created trainee with ID: " + TRAINEE_ID, event.getFormattedMessage());
+        assertFalse(event.getFormattedMessage().contains(PASSWORD));
+        assertFalse(event.getFormattedMessage().contains(HASHED_PASSWORD));
     }
 
     @Test
     void create_ShouldGenerateCredentialsSaveAndReturnTrainee() {
         Trainee trainee = createTrainee();
+
         when(traineeDao.findById(TRAINEE_ID)).thenReturn(Optional.empty());
         when(credentialGenerator.generateUsername(FIRST_NAME, LAST_NAME)).thenReturn(USERNAME);
         when(credentialGenerator.generatePassword()).thenReturn(PASSWORD);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(HASHED_PASSWORD);
 
         Trainee actual = service.create(trainee);
+
         verify(validator).validateTrainee(trainee);
         verify(traineeDao).findById(TRAINEE_ID);
         verify(credentialGenerator).generateUsername(FIRST_NAME, LAST_NAME);
         verify(credentialGenerator).generatePassword();
+        verify(passwordEncoder).encode(PASSWORD);
         verify(traineeDao).save(eq(TRAINEE_ID), traineeCaptor.capture());
 
         Trainee savedTrainee = traineeCaptor.getValue();
+
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
@@ -90,10 +143,9 @@ class TraineeServiceImplTest {
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
         assertTrue(actual.isActive());
-
-        assertEquals(actual.getUserId(), savedTrainee.getUserId());
-        assertEquals(actual.getUsername(), savedTrainee.getUsername());
-        assertEquals(actual.getPassword(), savedTrainee.getPassword());
+        assertEquals(TRAINEE_ID, savedTrainee.getUserId());
+        assertEquals(USERNAME, savedTrainee.getUsername());
+        assertEquals(HASHED_PASSWORD, savedTrainee.getPassword());
     }
 
     @Test
@@ -107,7 +159,7 @@ class TraineeServiceImplTest {
         assertEquals(TRAINEE_ALREADY_EXISTS_MESSAGE, exception.getMessage());
         verify(validator).validateTrainee(trainee);
         verify(traineeDao).findById(TRAINEE_ID);
-        verifyNoInteractions(credentialGenerator);
+        verifyNoInteractions(credentialGenerator, passwordEncoder);
         verify(traineeDao, never()).save(eq(TRAINEE_ID), any());
     }
 
@@ -149,16 +201,17 @@ class TraineeServiceImplTest {
         verify(validator).validateUpdateId(TRAINEE_ID, TRAINEE_ID, TRAINEE);
         verify(traineeDao).findById(TRAINEE_ID);
         verify(traineeDao).update(eq(TRAINEE_ID), traineeCaptor.capture());
+        verifyNoInteractions(passwordEncoder);
 
         Trainee updatedTrainee = traineeCaptor.getValue();
         assertEquals(USERNAME, actual.getUsername());
-        assertEquals(PASSWORD, actual.getPassword());
+        assertEquals(HASHED_PASSWORD, actual.getPassword());
         assertEquals(FIRST_NAME, actual.getFirstName());
         assertEquals(LAST_NAME, actual.getLastName());
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
         assertEquals(USERNAME, updatedTrainee.getUsername());
-        assertEquals(PASSWORD, updatedTrainee.getPassword());
+        assertEquals(HASHED_PASSWORD, updatedTrainee.getPassword());
     }
 
     @Test
@@ -226,7 +279,7 @@ class TraineeServiceImplTest {
                 .firstName("Old")
                 .lastName("Name")
                 .username(USERNAME)
-                .password(PASSWORD)
+                .password(HASHED_PASSWORD)
                 .active(false)
                 .dateOfBirth(LocalDate.of(1990, 1, 1))
                 .address("Old address")
