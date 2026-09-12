@@ -11,7 +11,6 @@ public final class GymCrmApplication {
     public static void main(String[] args) {
         try (AnnotationConfigApplicationContext context =
                      new AnnotationConfigApplicationContext(ApplicationConfig.class)) {
-            // Spring application context is initialized here.
         }
     }
 }
