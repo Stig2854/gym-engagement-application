@@ -8,6 +8,7 @@ import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class TrainerServiceImpl implements TrainerService {
     private TrainerDao trainerDao;
     private CoreValidator validator;
     private ProfileCredentialGenerator credentialGenerator;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
@@ -37,6 +39,11 @@ public class TrainerServiceImpl implements TrainerService {
         this.credentialGenerator = credentialGenerator;
     }
 
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     public Trainer create(Trainer trainer) {
         validator.validateTrainer(trainer);
@@ -48,14 +55,14 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         String username = credentialGenerator.generateUsername(trainer.getFirstName(), trainer.getLastName());
-        String password = credentialGenerator.generatePassword();
+        String rawPassword = credentialGenerator.generatePassword();
 
         Trainer trainerWithCredentials = Trainer.builder()
                 .userId(trainer.getUserId())
                 .firstName(trainer.getFirstName())
                 .lastName(trainer.getLastName())
                 .username(username)
-                .password(password)
+                .password(passwordEncoder.encode(rawPassword))
                 .active(trainer.isActive())
                 .specialization(trainer.getSpecialization())
                 .build();
@@ -84,8 +91,8 @@ public class TrainerServiceImpl implements TrainerService {
         validator.validateUpdateId(id, trainer.getUserId(), "Trainer");
 
         Trainer existingTrainer = trainerDao.findById(id)
-                .orElseThrow(() -> {
-                    LOGGER.warn("Attempt to update non-existing trainer with ID: {}", id);
+                .orElseThrow(() -> {LOGGER.warn("Attempt to update non-existing trainer with ID: {}", id);
+
                     return new IllegalStateException("Trainer not found with ID: %d".formatted(id));
                 });
 

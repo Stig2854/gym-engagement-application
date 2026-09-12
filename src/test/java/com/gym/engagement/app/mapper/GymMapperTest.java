@@ -54,7 +54,6 @@ class GymMapperTest {
         TraineeDto traineeDto = createTraineeDto();
 
         Trainee actual = mapper.toEntity(traineeDto);
-
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(TRAINEE_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINEE_LAST_NAME, actual.getLastName());
@@ -70,7 +69,6 @@ class GymMapperTest {
         Trainee trainee = createTrainee();
 
         TraineeDto actual = mapper.toDto(trainee);
-
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(TRAINEE_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINEE_LAST_NAME, actual.getLastName());
@@ -84,7 +82,6 @@ class GymMapperTest {
         TrainerDto trainerDto = createTrainerDto();
 
         Trainer actual = mapper.toEntity(trainerDto);
-
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(TRAINER_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINER_LAST_NAME, actual.getLastName());
@@ -99,7 +96,6 @@ class GymMapperTest {
         Trainer trainer = createTrainer();
 
         TrainerDto actual = mapper.toDto(trainer);
-
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(TRAINER_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINER_LAST_NAME, actual.getLastName());
@@ -112,7 +108,6 @@ class GymMapperTest {
         TrainingDto trainingDto = createTrainingDto();
 
         Training actual = mapper.toEntity(trainingDto);
-
         assertEquals(TRAINING_ID, actual.getId());
         assertEquals(TRAINEE_ID, actual.getTraineeId());
         assertEquals(TRAINER_ID, actual.getTrainerId());
@@ -127,7 +122,6 @@ class GymMapperTest {
         Training training = createTraining();
 
         TrainingDto actual = mapper.toDto(training);
-
         assertEquals(TRAINING_ID, actual.getId());
         assertEquals(TRAINEE_ID, actual.getTraineeId());
         assertEquals(TRAINER_ID, actual.getTrainerId());
