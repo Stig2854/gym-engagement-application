@@ -57,28 +57,15 @@ public class TrainerServiceImpl implements TrainerService {
         String username = credentialGenerator.generateUsername(trainer.getFirstName(), trainer.getLastName());
         String rawPassword = credentialGenerator.generatePassword();
 
-        Trainer trainerWithCredentials = Trainer.builder()
-                .userId(trainer.getUserId())
-                .firstName(trainer.getFirstName())
-                .lastName(trainer.getLastName())
+        Trainer trainerWithCredentials = trainer.toBuilder()
                 .username(username)
                 .password(passwordEncoder.encode(rawPassword))
-                .active(trainer.isActive())
-                .specialization(trainer.getSpecialization())
                 .build();
 
         trainerDao.save(trainerWithCredentials.getUserId(), trainerWithCredentials);
         LOGGER.info("Created trainer with ID: {}", trainerWithCredentials.getUserId());
 
-        return Trainer.builder()
-                .userId(trainerWithCredentials.getUserId())
-                .firstName(trainerWithCredentials.getFirstName())
-                .lastName(trainerWithCredentials.getLastName())
-                .username(trainerWithCredentials.getUsername())
-                .password(rawPassword)
-                .active(trainerWithCredentials.isActive())
-                .specialization(trainerWithCredentials.getSpecialization())
-                .build();
+        return trainerWithCredentials.toBuilder().password(rawPassword).build();
     }
 
     @Override
@@ -104,14 +91,9 @@ public class TrainerServiceImpl implements TrainerService {
                     return new IllegalStateException("Trainer not found with ID: %d".formatted(id));
                 });
 
-        Trainer updatedTrainer = Trainer.builder()
-                .userId(trainer.getUserId())
-                .firstName(trainer.getFirstName())
-                .lastName(trainer.getLastName())
+        Trainer updatedTrainer = trainer.toBuilder()
                 .username(existingTrainer.getUsername())
                 .password(existingTrainer.getPassword())
-                .active(trainer.isActive())
-                .specialization(trainer.getSpecialization())
                 .build();
 
         trainerDao.update(id, updatedTrainer);

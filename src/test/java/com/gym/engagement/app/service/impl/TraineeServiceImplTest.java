@@ -22,6 +22,7 @@ import com.gym.engagement.app.service.common.CoreValidator;
 import com.gym.engagement.app.service.common.ProfileCredentialGenerator;
 
 import java.time.LocalDate;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,15 +106,13 @@ class TraineeServiceImplTest {
 
         service.create(trainee);
 
-        List<ILoggingEvent> infoLogs = logAppender.list.stream()
-                .filter(event -> event.getLevel() == Level.INFO)
-                .toList();
-
-        assertTrue(infoLogs.stream().anyMatch(event -> event.getFormattedMessage()
-                .equals("Created trainee with ID: " + TRAINEE_ID)));
-
-        assertFalse(logAppender.list.stream().map(ILoggingEvent::getFormattedMessage)
-                .anyMatch(message -> message.contains(PASSWORD) || message.contains(HASHED_PASSWORD)));
+        assertEquals(1, logAppender.list.size());
+        Iterator<ILoggingEvent> iterator = logAppender.list.iterator();
+        ILoggingEvent event = iterator.next();
+        assertEquals(Level.INFO, event.getLevel());
+        assertEquals("Created trainee with ID: " + TRAINEE_ID, event.getFormattedMessage());
+        assertFalse(event.getFormattedMessage().contains(PASSWORD));
+        assertFalse(event.getFormattedMessage().contains(HASHED_PASSWORD));
     }
 
     @Test

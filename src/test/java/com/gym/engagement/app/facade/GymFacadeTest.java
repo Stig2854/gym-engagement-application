@@ -80,6 +80,7 @@ class GymFacadeTest {
         when(gymMapper.toDto(trainee)).thenReturn(expectedTraineeDto);
 
         TraineeDto actual = facade.createTrainee(traineeDto);
+
         assertSame(expectedTraineeDto, actual);
         verify(gymMapper).toEntity(traineeDto);
         verify(traineeService).create(trainee);
@@ -89,11 +90,13 @@ class GymFacadeTest {
     @Test
     void updateTrainee_ShouldMapDtoUpdateEntityAndMapEntityToDto() {
         TraineeDto expectedTraineeDto = mock(TraineeDto.class);
+
         when(gymMapper.toEntity(traineeDto)).thenReturn(trainee);
         when(traineeService.update(ID, trainee)).thenReturn(trainee);
         when(gymMapper.toDto(trainee)).thenReturn(expectedTraineeDto);
 
         TraineeDto actual = facade.updateTrainee(ID, traineeDto);
+
         assertSame(expectedTraineeDto, actual);
         verify(gymMapper).toEntity(traineeDto);
         verify(traineeService).update(ID, trainee);
@@ -110,6 +113,7 @@ class GymFacadeTest {
     @Test
     void findTraineeById_ShouldMapAndReturnTraineeDto_WhenTraineeExists() {
         TraineeDto expectedTraineeDto = mock(TraineeDto.class);
+
         when(traineeService.findById(ID)).thenReturn(Optional.of(trainee));
         when(gymMapper.toDto(trainee)).thenReturn(expectedTraineeDto);
 
@@ -160,6 +164,7 @@ class GymFacadeTest {
         when(gymMapper.toDto(trainer)).thenReturn(expectedTrainerDto);
 
         TrainerDto actual = facade.createTrainer(trainerDto);
+
         assertSame(expectedTrainerDto, actual);
         verify(gymMapper).toEntity(trainerDto);
         verify(trainerService).create(trainer);
@@ -236,6 +241,7 @@ class GymFacadeTest {
         when(gymMapper.toDto(training)).thenReturn(expectedTrainingDto);
 
         TrainingDto actual = facade.createTraining(trainingDto);
+
         assertSame(expectedTrainingDto, actual);
         verify(gymMapper).toEntity(trainingDto);
         verify(trainingService).create(training);

@@ -51,36 +51,22 @@ public class TraineeServiceImpl implements TraineeService {
         if (traineeDao.findById(trainee.getUserId()).isPresent()) {
             LOGGER.warn("Attempt to create trainee with existing ID: {}", trainee.getUserId());
 
-            throw new IllegalStateException("Trainee with ID %d already exists".formatted(trainee.getUserId()));
+            throw new IllegalStateException(
+                    "Trainee with ID %d already exists".formatted(trainee.getUserId()));
         }
 
         String username = credentialGenerator.generateUsername(trainee.getFirstName(), trainee.getLastName());
         String rawPassword = credentialGenerator.generatePassword();
 
-        Trainee traineeWithCredentials = Trainee.builder()
-                .userId(trainee.getUserId())
-                .firstName(trainee.getFirstName())
-                .lastName(trainee.getLastName())
+        Trainee traineeWithCredentials = trainee.toBuilder()
                 .username(username)
                 .password(passwordEncoder.encode(rawPassword))
-                .active(trainee.isActive())
-                .dateOfBirth(trainee.getDateOfBirth())
-                .address(trainee.getAddress())
                 .build();
 
         traineeDao.save(traineeWithCredentials.getUserId(), traineeWithCredentials);
         LOGGER.info("Created trainee with ID: {}", traineeWithCredentials.getUserId());
 
-        return Trainee.builder()
-                .userId(traineeWithCredentials.getUserId())
-                .firstName(traineeWithCredentials.getFirstName())
-                .lastName(traineeWithCredentials.getLastName())
-                .username(traineeWithCredentials.getUsername())
-                .password(rawPassword)
-                .active(traineeWithCredentials.isActive())
-                .dateOfBirth(traineeWithCredentials.getDateOfBirth())
-                .address(traineeWithCredentials.getAddress())
-                .build();
+        return traineeWithCredentials.toBuilder().password(rawPassword).build();
     }
 
     @Override
@@ -106,15 +92,9 @@ public class TraineeServiceImpl implements TraineeService {
                     return new IllegalStateException("Trainee not found with ID: %d".formatted(id));
                 });
 
-        Trainee updatedTrainee = Trainee.builder()
-                .userId(trainee.getUserId())
-                .firstName(trainee.getFirstName())
-                .lastName(trainee.getLastName())
+        Trainee updatedTrainee = trainee.toBuilder()
                 .username(existingTrainee.getUsername())
                 .password(existingTrainee.getPassword())
-                .active(trainee.isActive())
-                .dateOfBirth(trainee.getDateOfBirth())
-                .address(trainee.getAddress())
                 .build();
 
         traineeDao.update(id, updatedTrainee);

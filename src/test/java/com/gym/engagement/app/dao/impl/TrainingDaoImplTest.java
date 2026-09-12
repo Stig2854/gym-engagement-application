@@ -83,6 +83,7 @@ class TrainingDaoImplTest {
         Training existingTraining = createTraining();
         Training updatedTraining = createUpdatedTraining();
         storage.put(TRAINING_ID, existingTraining);
+
         dao.update(TRAINING_ID, updatedTraining);
 
         assertEquals(1, storage.size());
@@ -93,6 +94,7 @@ class TrainingDaoImplTest {
     void deleteById_ShouldRemoveTrainingFromStorage() {
         Training training = createTraining();
         storage.put(TRAINING_ID, training);
+
         dao.deleteById(TRAINING_ID);
 
         assertTrue(storage.isEmpty());
