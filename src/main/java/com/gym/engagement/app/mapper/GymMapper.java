@@ -15,13 +15,11 @@ import org.mapstruct.Mapping;
 public interface GymMapper {
 
     @Mapping(target = "username", ignore = true)
-    @Mapping(target = "password", ignore = true)
     Trainee toEntity(TraineeDto traineeDto);
 
     TraineeDto toDto(Trainee trainee);
 
     @Mapping(target = "username", ignore = true)
-    @Mapping(target = "password", ignore = true)
     Trainer toEntity(TrainerDto trainerDto);
 
     TrainerDto toDto(Trainer trainer);

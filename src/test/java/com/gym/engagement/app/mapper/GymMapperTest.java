@@ -50,7 +50,7 @@ class GymMapperTest {
     }
 
     @Test
-    void toEntity_ShouldMapTraineeDtoWithoutCredentials() {
+    void toEntity_ShouldMapTraineeDto() {
         TraineeDto traineeDto = createTraineeDto();
 
         Trainee actual = mapper.toEntity(traineeDto);
@@ -62,7 +62,7 @@ class GymMapperTest {
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
         assertNull(actual.getUsername());
-        assertNull(actual.getPassword());
+        assertEquals(PASSWORD, actual.getPassword());
     }
 
     @Test
@@ -74,13 +74,15 @@ class GymMapperTest {
         assertEquals(TRAINEE_ID, actual.getUserId());
         assertEquals(TRAINEE_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINEE_LAST_NAME, actual.getLastName());
+        assertEquals(TRAINEE_USERNAME, actual.getUsername());
+        assertEquals(PASSWORD, actual.getPassword());
         assertTrue(actual.isActive());
         assertEquals(DATE_OF_BIRTH, actual.getDateOfBirth());
         assertEquals(ADDRESS, actual.getAddress());
     }
 
     @Test
-    void toEntity_ShouldMapTrainerDtoWithoutCredentials() {
+    void toEntity_ShouldMapTrainerDto() {
         TrainerDto trainerDto = createTrainerDto();
 
         Trainer actual = mapper.toEntity(trainerDto);
@@ -91,7 +93,7 @@ class GymMapperTest {
         assertTrue(actual.isActive());
         assertEquals(YOGA_TRAINING_TYPE, actual.getSpecialization().getTrainingTypeName());
         assertNull(actual.getUsername());
-        assertNull(actual.getPassword());
+        assertEquals(PASSWORD, actual.getPassword());
     }
 
     @Test
@@ -103,6 +105,8 @@ class GymMapperTest {
         assertEquals(TRAINER_ID, actual.getUserId());
         assertEquals(TRAINER_FIRST_NAME, actual.getFirstName());
         assertEquals(TRAINER_LAST_NAME, actual.getLastName());
+        assertEquals(TRAINER_USERNAME, actual.getUsername());
+        assertEquals(PASSWORD, actual.getPassword());
         assertTrue(actual.isActive());
         assertEquals(YOGA_TRAINING_TYPE, actual.getSpecialization().getTrainingTypeName());
     }
@@ -142,6 +146,7 @@ class GymMapperTest {
         traineeDto.setUserId(TRAINEE_ID);
         traineeDto.setFirstName(TRAINEE_FIRST_NAME);
         traineeDto.setLastName(TRAINEE_LAST_NAME);
+        traineeDto.setPassword(PASSWORD);
         traineeDto.setActive(true);
         traineeDto.setDateOfBirth(DATE_OF_BIRTH);
         traineeDto.setAddress(ADDRESS);
@@ -167,6 +172,7 @@ class GymMapperTest {
         trainerDto.setUserId(TRAINER_ID);
         trainerDto.setFirstName(TRAINER_FIRST_NAME);
         trainerDto.setLastName(TRAINER_LAST_NAME);
+        trainerDto.setPassword(PASSWORD);
         trainerDto.setActive(true);
         trainerDto.setSpecialization(createTrainingTypeDto(YOGA_TRAINING_TYPE));
 
